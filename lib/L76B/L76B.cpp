@@ -1,5 +1,6 @@
-#include "gps.h"
-#include "pico/stdlib.h"
+#include "L76B.h"
+#include <Arduino.h>
+// #include "pico/stdlib.h"
 #include "hardware/uart.h"
 
 #define UART_ID uart0
@@ -7,47 +8,49 @@
 #define UART_TX_PIN 0  // Replace with the appropriate TX pin for your setup
 #define UART_RX_PIN 1  // Replace with the appropriate RX pin for your setup
 
-GPS::GPS() : latitude(0.0), longitude(0.0), speed(0.0), bearing(0.0) {
-    // Initialize UART
+L76B::L76B() : latitude(0.0), longitude(0.0), speed(0.0), bearing(0.0) {
+    // // Initialize UART
     uart_init(UART_ID, BAUD_RATE);
     gpio_set_function(UART_TX_PIN, GPIO_FUNC_UART);
     gpio_set_function(UART_RX_PIN, GPIO_FUNC_UART);
 
-    // Set UART format
+    // // Set UART format
     uart_set_format(UART_ID, 8, 1, UART_PARITY_NONE);
 }
 
-void GPS::readDataFromUART() {
+void L76B::readNMEA() {
     char buffer[128];
     size_t index = 0;
-
-    while (true) {
-        // Read characters from UART
-        while (uart_is_readable(UART_ID)) {
-            char c = uart_getc(UART_ID);
-            if (c == '\n' || c == '\r') {
-                buffer[index] = '\0';  // Null-terminate the string
-                processNMEA(std::string(buffer));  // Process the NMEA sentence
-                index = 0;  // Reset buffer index
-            } else {
-                buffer[index++] = c;  // Add character to buffer
-                if (index >= sizeof(buffer) - 1) {  // Prevent buffer overflow
-                    index = 0;
-                }
+    bool isSentence = false;
+    
+    // Read characters from UART
+    char c = uart_getc(UART_ID);
+    while (uart_is_readable(UART_ID) || !isSentence) {
+        char c = uart_getc(UART_ID);
+        if (c == '\n' || c == '\r') {
+            buffer[index] = '\0';  // Null-terminate the string
+            isSentence = processNMEA(std::string(buffer));  // Process the NMEA sentence
+            index = 0;  // Reset buffer index
+        } else {
+            buffer[index++] = c;  // Add character to buffer
+            if (index >= sizeof(buffer) - 1) {  // Prevent buffer overflow
+                index = 0;
             }
         }
-        sleep_ms(100);  // Sleep for a short time to avoid busy-waiting
     }
 }
 
-void GPS::processNMEA(const std::string& nmea) {
+bool L76B::processNMEA(const std::string& nmea) {
+    // Check if the protocol is GNRMC
     if (nmea.find("$GNRMC") != std::string::npos) {
+        Serial.println("GNRMC Sentence");
         parseGNRMC(nmea);
+        return true;
     }
-    // Add additional parsing functions here for other NMEA sentences
+    return false;
 }
 
-void GPS::parseGNRMC(const std::string& nmea) {
+void L76B::parseGNRMC(const std::string& nmea) {
     // Example of GNRMC Sentence: 
     // $GNRMC,092204.999,A,5321.6802,N,00630.3372,W,0.06,31.66,280511,,,A*43
 
@@ -85,7 +88,7 @@ void GPS::parseGNRMC(const std::string& nmea) {
     }
 }
 
-double GPS::convertToDecimalDegrees(const std::string& coordinate, const std::string& direction) {
+double L76B::convertToDecimalDegrees(const std::string& coordinate, const std::string& direction) {
     double decimal = std::stod(coordinate.substr(0, 2)) + (std::stod(coordinate.substr(2)) / 60.0);
     if (direction == "S" || direction == "W") {
         decimal = -decimal;
@@ -93,8 +96,8 @@ double GPS::convertToDecimalDegrees(const std::string& coordinate, const std::st
     return decimal;
 }
 
-std::string GPS::getTime() const { return time; }
-double GPS::getLatitude() const { return latitude; }
-double GPS::getLongitude() const { return longitude; }
-double GPS::getSpeed() const { return speed; }
-double GPS::getBearing() const { return bearing; }
+std::string L76B::getTime() const { return time; }
+double L76B::getLatitude() const { return latitude; }
+double L76B::getLongitude() const { return longitude; }
+double L76B::getSpeed() const { return speed; }
+double L76B::getBearing() const { return bearing; }

@@ -1,18 +1,18 @@
-#ifndef GPS_H
-#define GPS_H
+#ifndef L76B_H
+#define L76B_H
 
 #include <string>
 
-class GPS {
+class L76B {
 public:
     // Constructor
-    GPS();
+    L76B();
 
     // Function to read data from UART and process NMEA sentences
-    void readDataFromUART();
+    void readNMEA();
 
     // Function to process NMEA sentence
-    void processNMEA(const std::string& nmea);
+    bool processNMEA(const std::string& nmea);
 
     // Getters
     std::string getTime() const;
@@ -20,6 +20,7 @@ public:
     double getLongitude() const;
     double getSpeed() const;
     double getBearing() const;
+
 
 private:
     std::string time;
@@ -35,4 +36,4 @@ private:
     double convertToDecimalDegrees(const std::string& coordinate, const std::string& direction);
 };
 
-#endif // GPS_H
+#endif // L76B_H
