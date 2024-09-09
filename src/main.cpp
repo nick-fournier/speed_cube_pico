@@ -30,17 +30,17 @@ void setup(void) {
   tft.setCursor(0, 20);
   tft.print("GPS ");  // Print "GPS" label
 
-  tft.setCursor(0, 50);
-  tft.print("Latitude: ");
+  tft.setCursor(0, 40);
+  tft.print("Time: ");
+
+  tft.setCursor(0, 60);
+  tft.print("Position: ");
   
   tft.setCursor(0, 80);
-  tft.print("Longitude: ");
-  
-  tft.setCursor(0, 110);
   tft.print("Speed (knots): ");
   
-  tft.setCursor(0, 140);
-  tft.print("Bearing (degrees): ");
+  tft.setCursor(0, 100);
+  tft.print("Bearing: ");
    
 }
 
@@ -58,16 +58,16 @@ void loop() {
   GPS.readNMEA();  // This should read new data from the GPS
 
   // Update dynamic values without clearing the screen
-  tft.setCursor(120, 50);  // Position to overwrite Latitude value
-  tft.print(String(GPS.getLatitude(), 6));  // Print the new Latitude value
+  tft.setCursor(120, 40);  // Position to overwrite Time value
+  tft.print(GPS.getTime().c_str());  // Print the new Time value
 
-  tft.setCursor(120, 80);  // Position to overwrite Longitude value
-  tft.print(String(GPS.getLongitude(), 6));  // Print the new Longitude value
+  tft.setCursor(120, 60);  // Position to overwrite Latitude and Longitude values
+  tft.print(String(GPS.getLatitude(), 6) + ", " + String(GPS.getLongitude(), 6));  // Print the new Latitude and Longitude values
 
-  tft.setCursor(160, 110);  // Position to overwrite Speed value
+  tft.setCursor(180, 80);  // Position to overwrite Speed value
   tft.print(String(GPS.getSpeed(), 2));  // Print the new Speed value
 
-  tft.setCursor(200, 140);  // Position to overwrite Bearing value
+  tft.setCursor(100, 100);  // Position to overwrite Bearing value
   tft.print(String(GPS.getBearing(), 2));  // Print the new Bearing value
 
   // Add a small delay to avoid flickering and reduce the update rate

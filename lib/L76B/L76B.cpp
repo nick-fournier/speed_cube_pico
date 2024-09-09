@@ -43,7 +43,7 @@ void L76B::readNMEA() {
 bool L76B::processNMEA(const std::string& nmea) {
     // Check if the protocol is GNRMC
     if (nmea.find("$GNRMC") != std::string::npos) {
-        Serial.println("GNRMC Sentence");
+        Serial.println(nmea.c_str());
         parseGNRMC(nmea);
         return true;
     }
@@ -89,11 +89,22 @@ void L76B::parseGNRMC(const std::string& nmea) {
 }
 
 double L76B::convertToDecimalDegrees(const std::string& coordinate, const std::string& direction) {
-    double decimal = std::stod(coordinate.substr(0, 2)) + (std::stod(coordinate.substr(2)) / 60.0);
+    // Coordinate format: ddmm.mmmm
+    // Direction format: N/S/E/W
+    // Example: 12218.6633, W == -122.3110555
+
+    // Extract degrees as integer
+    int dd = (int)(std::stod(coordinate) / 100);
+
+    // Extract minutes as double
+    double mm = std::stod(coordinate) - (dd * 100);
+
+    // Convert to decimal degrees
+    double decimalDegrees = dd + (mm / 60);
     if (direction == "S" || direction == "W") {
-        decimal = -decimal;
+        decimalDegrees *= -1;
     }
-    return decimal;
+    return decimalDegrees;
 }
 
 std::string L76B::getTime() const { return time; }
